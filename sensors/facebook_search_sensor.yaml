@@ -1,0 +1,13 @@
+---
+  class_name: "FacebookSearchSensor"
+  entry_point: "facebook_search_sensor.py"
+  description: "Sensor which monitors Facebook page feed for new posts"
+  poll_interval: 30
+  trigger_types:
+    -
+      name: "matched_post"
+      description: "Trigger which represents a matching post"
+      payload_info:
+        - "id"
+        - "created_time"
+        - "message"

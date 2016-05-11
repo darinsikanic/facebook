@@ -1,0 +1,6 @@
+---
+version: '2.6'
+page_id: 'BillGates'
+
+fb_app_id:
+fb_app_secret:

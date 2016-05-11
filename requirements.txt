@@ -1,0 +1,2 @@
+-e git+https://github.com/mobolic/facebook-sdk.git@c01be26406f8acd146363be168e4469ba6cf0a8a#egg=facebook_sdk-master
+python-dateutil==2.5.3
