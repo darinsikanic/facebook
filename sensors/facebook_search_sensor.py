@@ -1,5 +1,6 @@
 from st2reactor.sensor.base import PollingSensor
 import dateutil.parser as dateparser
+import datetime
 import facebook
 
 __all__ = [
@@ -18,7 +19,16 @@ class FacebookSearchSensor(PollingSensor):
         self._version = self._config.get('version', '2.6')
         self._page_id = self._config['page_id']
         self._last_post_timestamp = None
-        self._args = {}
+        # Standard fields we always look for in a pages feed
+        self._args = {
+            'fields': ['id','message','created_time']
+        }
+
+        if self._config['fields']:
+            # If someone decides to put in one of the standard fields remove it
+            [field in self._config['fields'] and self._config['fields'].remove(field) for field in self._args['fields']]
+            self._args['fields'] = self._args['fields'] + self._config['fields']
+        self._args['fields'] = ','.join(self._args['fields'])
 
         app_id = self._config['fb_app_id']
         app_secret = self._config['fb_app_secret']
@@ -26,14 +36,17 @@ class FacebookSearchSensor(PollingSensor):
         self._access_token = facebook.GraphAPI().get_app_access_token(app_id=app_id, app_secret=app_secret, offline=True)
         self._graph = facebook.GraphAPI(access_token=self._access_token, version=self._version)
 
-    def poll(self):
-
+    def poll(self):        
         last_post_timestamp = self._get_last_post_timestamp()
 
         if last_post_timestamp:
             self._args['since'] = last_post_timestamp
-
+        else:
+            # We default to checking if anything has been posted today
+            self._args['since'] = datetime.datetime.now().strftime("%Y-%m-%d")
         try:
+            self._logger.info("Page ID is: %s" %(self._page_id))
+            self._logger.info("Args are: %s" %(self._args))
             feed = self._graph.get_connections(self._page_id, 'feed', **self._args)
         except facebook.GraphAPIError, e:
             self._logger.exception('Fetching feed for page with node_id: %s failed' % (self._page_id))
@@ -76,4 +89,9 @@ class FacebookSearchSensor(PollingSensor):
             'created_time': post['created_time'],
             'message': post['message']
         }
+        if self._config['fields']:
+            for field in self._config['fields']:
+                if field in post:
+                    payload[field] = post[field]
+
         self._sensor_service.dispatch(trigger=trigger, payload=payload)

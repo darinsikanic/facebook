@@ -4,3 +4,6 @@ page_id: 'BillGates'
 
 fb_app_id:
 fb_app_secret:
+
+fields:
+  - 'description'
