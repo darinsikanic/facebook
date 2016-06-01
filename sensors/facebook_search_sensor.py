@@ -1,6 +1,5 @@
 from st2reactor.sensor.base import PollingSensor
 import dateutil.parser as dateparser
-import datetime
 import facebook
 
 __all__ = [
@@ -41,9 +40,11 @@ class FacebookSearchSensor(PollingSensor):
 
         if last_post_timestamp:
             self._args['since'] = last_post_timestamp
+            if 'limit' in self._args:
+                del self._args['limit']
         else:
-            # We default to checking if anything has been posted today
-            self._args['since'] = datetime.datetime.now().strftime("%Y-%m-%d")
+            # We default to getting the latest post
+            self._args['limit'] = 1
         try:
             self._logger.info("Page ID is: %s" %(self._page_id))
             self._logger.info("Args are: %s" %(self._args))
